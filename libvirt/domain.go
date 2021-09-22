@@ -587,6 +587,9 @@ func setDisks(d *schema.ResourceData, domainDef *libvirtxml.Domain, virConn *lib
 
 			disk.Driver.Type = "raw"
 		}
+		if cacheMode, ok := d.GetOk(prefix + ".cache_mode"); ok {
+			disk.Driver.Cache = cacheMode.(string)
+		}
 
 		domainDef.Devices.Disks = append(domainDef.Devices.Disks, disk)
 	}

@@ -330,6 +330,22 @@ func resourceLibvirtDomain() *schema.Resource {
 					},
 				},
 			},
+			"cpu_feature": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"name": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+						"policy": {
+							Type:     schema.TypeString,
+							Required: true,
+						},
+					},
+				},
+			},
 			"autostart": {
 				Type:     schema.TypeBool,
 				Optional: true,
@@ -452,6 +468,19 @@ func resourceLibvirtDomainCreate(d *schema.ResourceData, meta interface{}) error
 	if cpuMode, ok := d.GetOk("cpu.mode"); ok {
 		domainDef.CPU = &libvirtxml.DomainCPU{
 			Mode: cpuMode.(string),
+		}
+
+		for i := 0; i < d.Get("cpu_feature.#").(int); i++ {
+			prefix := fmt.Sprintf("cpu_feature.%d", i)
+			if name, ok := d.GetOk(prefix + ".name"); ok {
+				if policy, ok := d.GetOk(prefix + ".policy"); ok {
+					cpuFeature := libvirtxml.DomainCPUFeature{
+						Policy: policy.(string),
+						Name:   name.(string),
+					}
+					domainDef.CPU.Features = append(domainDef.CPU.Features, cpuFeature)
+				}
+			}
 		}
 	}
 
